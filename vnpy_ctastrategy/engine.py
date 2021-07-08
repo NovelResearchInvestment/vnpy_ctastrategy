@@ -1,6 +1,8 @@
 """"""
 
 import importlib
+import os
+import sys
 import traceback
 from collections import defaultdict
 from pathlib import Path
@@ -76,8 +78,7 @@ class CtaEngine(BaseEngine):
 
     def __init__(self, main_engine: MainEngine, event_engine: EventEngine):
         """"""
-        super(CtaEngine, self).__init__(
-            main_engine, event_engine, APP_NAME)
+        super(CtaEngine, self).__init__(main_engine, event_engine, APP_NAME)
 
         self.strategy_setting = {}  # strategy_name: dict
         self.strategy_data = {}     # strategy_name: dict
@@ -103,11 +104,11 @@ class CtaEngine(BaseEngine):
 
         self.offset_converter = OffsetConverter(self.main_engine)
 
-    def init_engine(self):
+    def init_engine(self, class_path):
         """
         """
         self.init_rqdata()
-        self.load_strategy_class()
+        self.load_strategy_class(class_path=class_path)
         self.load_strategy_setting()
         self.load_strategy_data()
         self.register_event()
@@ -785,22 +786,32 @@ class CtaEngine(BaseEngine):
         self.write_log(f"策略{strategy.strategy_name}移除移除成功")
         return True
 
-    def load_strategy_class(self):
+    def load_strategy_class(self, class_path=[]):
         """
         Load strategy class from source code.
         """
+
         path1 = Path(__file__).parent.joinpath("strategies")
         self.load_strategy_class_from_folder(path1, "vnpy_ctastrategy.strategies")
-
         path2 = Path.cwd().joinpath("strategies")
         self.load_strategy_class_from_folder(path2, "strategies")
+
+        # TODO add json.cfg for custom strategies folder path
+        for p in class_path:
+            if p not in [path1, path2]:
+                parent = Path(p).parent
+                module_name = Path(p).name
+                if parent not in sys.path:
+                    sys.path.append(str(parent))
+                self.load_strategy_class_from_folder(Path(p), module_name)
+
 
     def load_strategy_class_from_folder(self, path: Path, module_name: str = ""):
         """
         Load strategy class from certain folder.
         """
         for suffix in ["py", "pyd", "so"]:
-            pathname: str = str(path) + f"\\*.{suffix}"
+            pathname: str = str(path.joinpath(f"*.{suffix}"))
             for filepath in glob(pathname):
                 filename: str = Path(filepath).stem
                 name: str = f"{module_name}.{filename}"
@@ -895,6 +906,7 @@ class CtaEngine(BaseEngine):
                 strategy_config["class_name"],
                 strategy_name,
                 strategy_config["vt_symbol"],
+                # "btcusdt.BINANCE",
                 strategy_config["setting"]
             )
 
