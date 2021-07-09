@@ -74,12 +74,15 @@ class CtaEngine(BaseEngine):
 
     engine_type = EngineType.LIVE  # live trading engine
 
-    setting_filename = "cta_strategy_setting.json"
-    data_filename = "cta_strategy_data.json"
+    # setting_filename = "cta_strategy_setting.json"
+    # data_filename = "cta_strategy_data.json"
 
     def __init__(self, main_engine: MainEngine, event_engine: EventEngine):
         """"""
         super(CtaEngine, self).__init__(main_engine, event_engine, APP_NAME)
+
+        self.setting_filename = self.main_engine.global_setting['strategy_setting.file']
+        self.data_filename = self.main_engine.global_setting['strategy_data.file']
 
         self.strategy_setting = {}  # strategy_name: dict
         self.strategy_data = {}     # strategy_name: dict
@@ -105,11 +108,11 @@ class CtaEngine(BaseEngine):
 
         self.offset_converter = OffsetConverter(self.main_engine)
 
-    def init_engine(self, class_path):
+    def init_engine(self):
         """
         """
         self.init_rqdata()
-        self.load_strategy_class(class_path=class_path)
+        self.load_strategy_class()
         self.load_strategy_setting()
         self.load_strategy_data()
         self.register_event()
@@ -797,7 +800,7 @@ class CtaEngine(BaseEngine):
         self.write_log(f"策略{strategy.strategy_name}移除移除成功")
         return True
 
-    def load_strategy_class(self, class_path=[]):
+    def load_strategy_class(self):
         """
         Load strategy class from source code.
         """
@@ -808,13 +811,16 @@ class CtaEngine(BaseEngine):
         self.load_strategy_class_from_folder(path2, "strategies")
 
         # TODO add json.cfg for custom strategies folder path
-        for p in class_path:
-            if p not in [path1, path2]:
-                parent = Path(p).parent
-                module_name = Path(p).name
-                if parent not in sys.path:
-                    sys.path.append(str(parent))
-                self.load_strategy_class_from_folder(Path(p), module_name)
+        class_path_str = self.main_engine.global_setting['strategy_class.file']
+        if len(class_path_str.strip()) > 0:
+            class_path = class_path_str.split(':')
+            for p in class_path:
+                if p not in [path1, path2]:
+                    parent = Path(p).parent
+                    module_name = Path(p).name
+                    if parent not in sys.path:
+                        sys.path.append(str(parent))
+                    self.load_strategy_class_from_folder(Path(p), module_name)
 
 
     def load_strategy_class_from_folder(self, path: Path, module_name: str = ""):
