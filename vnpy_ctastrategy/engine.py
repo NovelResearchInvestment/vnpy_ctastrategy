@@ -28,7 +28,8 @@ from vnpy.trader.event import (
     EVENT_TICK,
     EVENT_ORDER,
     EVENT_TRADE,
-    EVENT_POSITION
+    EVENT_POSITION,
+    EVENT_ACCOUNT,
 )
 from vnpy.trader.constant import (
     Direction,
@@ -124,6 +125,7 @@ class CtaEngine(BaseEngine):
         self.event_engine.register(EVENT_ORDER, self.process_order_event)
         self.event_engine.register(EVENT_TRADE, self.process_trade_event)
         self.event_engine.register(EVENT_POSITION, self.process_position_event)
+        self.event_engine.register(EVENT_ACCOUNT, self.process_account_event)
 
     def init_rqdata(self):
         """
@@ -168,7 +170,7 @@ class CtaEngine(BaseEngine):
         order = event.data
 
         self.offset_converter.update_order(order)
-
+        
         strategy = self.orderid_strategy_map.get(order.vt_orderid, None)
         if not strategy:
             return
@@ -229,8 +231,17 @@ class CtaEngine(BaseEngine):
     def process_position_event(self, event: Event):
         """"""
         position = event.data
-
         self.offset_converter.update_position(position)
+
+    def process_account_event(self, event: Event):
+        """
+        收到账户事件推送
+        """
+        account = event.data
+        # self.offset_converter.update_account(account)
+        for _, _strategy in self.strategies.items():
+            self.call_strategy_func(_strategy, _strategy.on_account, account)
+
 
     def check_stop_order(self, tick: TickData):
         """"""
