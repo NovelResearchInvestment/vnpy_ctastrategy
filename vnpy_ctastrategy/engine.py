@@ -813,7 +813,7 @@ class CtaEngine(BaseEngine):
         # TODO add json.cfg for custom strategies folder path
         class_path_str = self.main_engine.global_setting['strategy_class.file']
         if len(class_path_str.strip()) > 0:
-            class_path = class_path_str.split(':')
+            class_path = class_path_str.split(';')
             for p in class_path:
                 if p not in [path1, path2]:
                     parent = Path(p).parent
