@@ -50,7 +50,8 @@ class BacktestingEngine:
         self.size = 1
         self.pricetick = 0
         self.capital = 1_000_000
-        self.risk_free: float = 0.02
+        self.risk_free: float = 0
+        self.annual_days: int = 240
         self.mode = BacktestingMode.BAR
         self.inverse = False
 
@@ -212,7 +213,7 @@ class BacktestingEngine:
         self.strategy.on_init()
 
         # Use the first [days] of history data for initializing strategy
-        day_count = 1
+        day_count = 0
         ix = 0
 
         for ix, data in enumerate(self.history_data):
@@ -238,8 +239,8 @@ class BacktestingEngine:
         self.output("开始回放历史数据")
 
         # Use the rest of history data for running backtesting
-        backtesting_data = self.history_data[ix + 1:]
-        if not backtesting_data:
+        backtesting_data = self.history_data[ix:]
+        if len(backtesting_data) <= 1:
             self.output("历史数据不足，回测终止")
             return
 
@@ -347,7 +348,9 @@ class BacktestingEngine:
             df["balance"] = df["net_pnl"].cumsum() + self.capital
 
             # When balance falls below 0, set daily return to 0
-            x = df["balance"] / df["balance"].shift(1)
+            pre_balance = df["balance"].shift(1)
+            pre_balance.iloc[0] = self.capital
+            x = df["balance"] / pre_balance
             x[x <= 0] = np.nan
             df["return"] = np.log(x).fillna(0)
 
@@ -637,7 +640,8 @@ class BacktestingEngine:
             order.status = Status.ALLTRADED
             self.strategy.on_order(order)
 
-            self.active_limit_orders.pop(order.vt_orderid)
+            if order.vt_orderid in self.active_limit_orders:
+                self.active_limit_orders.pop(order.vt_orderid)
 
             # Push trade update
             self.trade_count += 1
