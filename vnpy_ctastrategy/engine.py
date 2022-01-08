@@ -109,8 +109,8 @@ class CtaEngine(BaseEngine):
 
         self.offset_converter = OffsetConverter(self.main_engine)
 
-        self.database: BaseDatabase = get_database()
-        self.datafeed: BaseDatafeed = get_datafeed()
+        # self.database: BaseDatabase = get_database()
+        # self.datafeed: BaseDatafeed = get_datafeed()
 
     def init_engine(self):
         """
