@@ -40,9 +40,9 @@ from vnpy.trader.constant import (
     Status
 )
 from vnpy.trader.utility import load_json, save_json, extract_vt_symbol, round_to
-from vnpy.trader.rqdata import rqdata_client
+# from vnpy.trader.rqdata import rqdata_client
 from vnpy.trader.converter import OffsetConverter
-from vnpy.trader.database import database_manager
+# from vnpy.trader.database import database_manager
 
 from .base import (
     APP_NAME,
@@ -111,7 +111,7 @@ class CtaEngine(BaseEngine):
     def init_engine(self):
         """
         """
-        self.init_rqdata()
+        # self.init_rqdata()
         self.load_strategy_class()
         self.load_strategy_setting()
         self.load_strategy_data()
