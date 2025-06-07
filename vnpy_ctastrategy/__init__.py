@@ -22,9 +22,7 @@
 
 
 from pathlib import Path
-from typing import Type
 
-import importlib_metadata
 from vnpy.trader.app import BaseApp
 from vnpy.trader.constant import Direction
 from vnpy.trader.object import TickData, BarData, TradeData, OrderData
@@ -35,19 +33,35 @@ from .engine import CtaEngine
 from .template import CtaTemplate, CtaSignal, TargetPosTemplate
 
 
-try:
-    __version__ = importlib_metadata.version("vnpy_ctastrategy")
-except importlib_metadata.PackageNotFoundError:
-    __version__ = "dev"
+__all__ = [
+    "APP_NAME",
+    "CtaEngine",
+    "CtaTemplate",
+    "CtaSignal",
+    "TargetPosTemplate",
+    "StopOrder",
+    "Direction",
+    "TickData",
+    "BarData",
+    "TradeData",
+    "OrderData",
+    "BarGenerator",
+    "ArrayManager",
+    "CtaStrategyApp",
+]
+
+
+__version__ = "1.3.1"
 
 
 class CtaStrategyApp(BaseApp):
     """"""
+    from .locale import _
 
     app_name: str = APP_NAME
     app_module: str = __module__
     app_path: Path = Path(__file__).parent
-    display_name: str = "CTA策略"
-    engine_class: Type[CtaEngine] = CtaEngine
+    display_name: str = _("CTA策略")
+    engine_class: type[CtaEngine] = CtaEngine
     widget_name: str = "CtaManager"
     icon_name: str = str(app_path.joinpath("ui", "cta.ico"))
